@@ -26,25 +26,6 @@ class Player:
         print(f"{self.name} played a card")
         return True
     
-    def play_all_cards(self):
-        """Play all cards in hand and calculate total power"""
-        if not self.hand:
-            print("No cards in hand to play")
-            return
-        
-        cards_played = len(self.hand)
-        # Move all cards from hand to discard pile
-        self.discard_pile.extend(self.hand)
-        self.hand.clear()
-        
-        # TODO: Calculate power from played cards (when Card class is implemented)
-        # For now, just set a placeholder value
-        self.current_power = cards_played * 2  # Placeholder calculation
-        self.cards_played_this_turn = True
-        
-        print(f"{self.name} played {cards_played} cards")
-        print(f"Current power: {self.current_power}")
-    
     def buy_card(self, market_card, cost):
         """Buy a card from market if player has enough power"""
         if not self.cards_played_this_turn:
