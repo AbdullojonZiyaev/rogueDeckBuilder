@@ -416,8 +416,10 @@ def main():
             print("  port: Port to listen on (default: 8888)")
             print("\nExamples:")
             print("  python3 server.py                    # Bind to all interfaces on port 8888")
-            print("  python3 server.py 192.168.1.100     # Bind to specific IP")
+            print("  python3 server.py 10.1.2.100        # Bind to ZeroTier IP")
+            print("  python3 server.py 192.168.1.100     # Bind to local WiFi IP")
             print("  python3 server.py 0.0.0.0 9999      # Bind to all interfaces on port 9999")
+            print("\nTip: Use 'python3 network_info.py' to see your available IPs")
             return
         
         host = sys.argv[1]
@@ -428,34 +430,46 @@ def main():
                 print("Invalid port number, using default 8888")
                 port = 8888
     
-    print("=== Rogue Deck Builder Server ===")
+    print("🎮 === Rogue Deck Builder Server ===")
     print(f"Server will bind to: {host}:{port}")
     
     if host == '0.0.0.0':
-        print("Server accessible from any device on the local network")
-        # Try to show the local IP address
+        print("📡 Server accessible from any device on connected networks")
+        # Try to show available network interfaces
         try:
             import subprocess
             result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
             if result.returncode == 0:
                 local_ips = result.stdout.strip().split()
                 if local_ips:
-                    print(f"Your local IP address(es): {', '.join(local_ips)}")
-                    print(f"Other players can connect to: {local_ips[0]}:{port}")
+                    print("🔸 Available IP addresses:")
+                    for ip in local_ips:
+                        if not ip.startswith('127.'):
+                            # Try to identify ZeroTier IPs
+                            if ip.startswith('10.') or (ip.startswith('172.') and 16 <= int(ip.split('.')[1]) <= 31):
+                                print(f"   🚀 {ip} (likely ZeroTier/VPN)")
+                            else:
+                                print(f"   📶 {ip} (local network)")
+                    print(f"ℹ️  Run 'python3 network_info.py' for detailed network information")
         except:
-            print("Note: Other players need your computer's local IP address to connect")
+            print("ℹ️  Run 'python3 network_info.py' to see your available networks")
     else:
-        print(f"Server accessible at: {host}:{port}")
+        print(f"🎯 Server accessible at: {host}:{port}")
+        if host.startswith('10.') or (host.startswith('172.') and 16 <= int(host.split('.')[1]) <= 31):
+            print("🚀 Using ZeroTier/VPN network - great for bypassing WiFi restrictions!")
     
-    print("\nStarting server...")
+    print("\n🚀 Starting server...")
+    print("   Waiting for 2 players to connect...")
+    print("   Press Ctrl+C to stop server")
+    print()
     
     server = GameServer(host, port)
     try:
         server.start_server()
     except KeyboardInterrupt:
-        print("\nServer shutting down...")
+        print("\n👋 Server shutting down...")
     except Exception as e:
-        print(f"Server error: {e}")
+        print(f"❌ Server error: {e}")
 
 if __name__ == "__main__":
     main()
