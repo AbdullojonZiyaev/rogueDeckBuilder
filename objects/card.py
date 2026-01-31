@@ -1,5 +1,4 @@
 class Card:
-    
     """
     name = имя
     power = мощь
@@ -7,12 +6,13 @@ class Card:
     WP = winning points(ПО)
     ability = свойство (что делает?)
     """
-    def __init__ (self, card_index, name, power, cost, WP, ability):
+    def __init__ (self, card_index, name, power, cost, WP, count, ability):
         self.card_index = card_index
         self.name = name
         self.power = power
         self.cost = cost
         self.WP = WP
+        self.count = count
         self.ability = ability
     
     def getCard (self):
