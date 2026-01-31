@@ -402,7 +402,54 @@ class GameServer:
 
 def main():
     """Main server function"""
-    server = GameServer()
+    import sys
+    
+    # Default to bind to all interfaces for network access
+    host = '0.0.0.0'  # Allows connections from any IP on the network
+    port = 8888
+    
+    # Allow command line arguments
+    if len(sys.argv) > 1:
+        if sys.argv[1] in ['-h', '--help']:
+            print("Usage: python3 server.py [host] [port]")
+            print("  host: IP address to bind to (default: 0.0.0.0 for all interfaces)")
+            print("  port: Port to listen on (default: 8888)")
+            print("\nExamples:")
+            print("  python3 server.py                    # Bind to all interfaces on port 8888")
+            print("  python3 server.py 192.168.1.100     # Bind to specific IP")
+            print("  python3 server.py 0.0.0.0 9999      # Bind to all interfaces on port 9999")
+            return
+        
+        host = sys.argv[1]
+        if len(sys.argv) > 2:
+            try:
+                port = int(sys.argv[2])
+            except ValueError:
+                print("Invalid port number, using default 8888")
+                port = 8888
+    
+    print("=== Rogue Deck Builder Server ===")
+    print(f"Server will bind to: {host}:{port}")
+    
+    if host == '0.0.0.0':
+        print("Server accessible from any device on the local network")
+        # Try to show the local IP address
+        try:
+            import subprocess
+            result = subprocess.run(['hostname', '-I'], capture_output=True, text=True)
+            if result.returncode == 0:
+                local_ips = result.stdout.strip().split()
+                if local_ips:
+                    print(f"Your local IP address(es): {', '.join(local_ips)}")
+                    print(f"Other players can connect to: {local_ips[0]}:{port}")
+        except:
+            print("Note: Other players need your computer's local IP address to connect")
+    else:
+        print(f"Server accessible at: {host}:{port}")
+    
+    print("\nStarting server...")
+    
+    server = GameServer(host, port)
     try:
         server.start_server()
     except KeyboardInterrupt:
