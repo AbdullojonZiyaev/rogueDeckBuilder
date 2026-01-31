@@ -1,6 +1,7 @@
 import json
 import os
-from card import Card
+import random
+from objects.card import Card
 
 class Player:
     def __init__(self, name):
@@ -54,6 +55,7 @@ class Player:
             # If draw pile is empty, shuffle discard pile into draw pile
             if self.discard_pile:
                 self.draw_pile = self.discard_pile[:]
+                random.shuffle(self.draw_pile)  # Randomize the order
                 self.discard_pile.clear()
                 print("Shuffled discard pile into draw pile")
             else:
@@ -93,7 +95,13 @@ class Player:
         """Load cards from JSON file and add to draw pile"""
         try:
             with open(json_file_path, 'r') as file:
-                cards_data = json.load(file)
+                json_data = json.load(file)
+                
+            # Handle both JSON structures: direct array or wrapped in "cards" key
+            if "cards" in json_data:
+                cards_data = json_data["cards"]
+            else:
+                cards_data = json_data
                 
             for card_data in cards_data:
                 card = Card(
@@ -102,7 +110,7 @@ class Player:
                     card_data['power'],
                     card_data['cost'],
                     card_data['WP'],
-                    card_data['ability']
+                    card_data.get('ability', card_data.get('Ability', ''))  # Handle both 'ability' and 'Ability'
                 )
                 self.draw_pile.append(card)
             
@@ -111,6 +119,8 @@ class Player:
             print(f"Cards file {json_file_path} not found")
         except json.JSONDecodeError:
             print(f"Invalid JSON format in {json_file_path}")
+        except KeyError as e:
+            print(f"Missing required field in card data: {e}")
     
     def show_hand(self):
         """Display all cards in hand with indices"""
