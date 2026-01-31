@@ -1,3 +1,7 @@
+import json
+import os
+from card import Card
+
 class Player:
     def __init__(self, name):
         """Initialize a player with name and empty decks"""
@@ -5,12 +9,10 @@ class Player:
         self.hand = []       # Cards currently in hand
         self.draw_pile = []  # Cards to be drawn
         self.discard_pile = [] # Cards that have been played/discarded
-        self.wp = 0          # Win points
-        self.current_power = 0 # Power available for purchasing cards
-        self.cards_played_this_turn = False
+        self.turn_power = 0    # Power generated this turn from played cards
     
     def play_card(self, card_index):
-        """Play a card from hand to discard pile"""
+        """Play a card from hand to discard pile and add its power/WP"""
         if card_index < 0 or card_index >= len(self.hand):
             print(f"Invalid card index: {card_index}")
             return False
@@ -23,27 +25,28 @@ class Player:
         played_card = self.hand.pop(card_index)
         self.discard_pile.append(played_card)
         
-        print(f"{self.name} played a card")
+        # Add card's power to turn total
+        self.turn_power += played_card.getPower()
+        
+        print(f"{self.name} played {played_card.getName()} (Power: {played_card.getPower()}, WP: {played_card.getWP()})")
+        print(f"Turn power: {self.turn_power}")
+        return True
+    
+    def finish_turn(self):
+        """Finish turn when no more cards in hand - show final power for purchasing"""
+        if self.hand:
+            print(f"Still have {len(self.hand)} cards in hand. Play all cards first.")
+            return False
+        
+        print(f"\n=== Turn Complete ===")
+        print(f"{self.name} generated {self.turn_power} power this turn")
+        print(f"Use this power to buy cards from the market!")
         return True
     
     def buy_card(self, market_card, cost):
-        """Buy a card from market if player has enough power"""
-        if not self.cards_played_this_turn:
-            print("Must play all cards in hand before buying")
-            return False
-        
-        if self.current_power < cost:
-            print(f"Not enough power. Need {cost}, have {self.current_power}")
-            return False
-        
-        # Deduct cost from current power
-        self.current_power -= cost
-        # Add card to discard pile
-        self.discard_pile.append(market_card)
-        
-        print(f"{self.name} bought a card for {cost} power")
-        print(f"Remaining power: {self.current_power}")
-        return True
+        """Buy a card from market if player has enough power (placeholder for future)"""
+        print("Market not implemented yet")
+        return False
     
     def draw_card(self):
         """Draw a card from draw pile to hand"""
@@ -75,14 +78,50 @@ class Player:
     
     def end_turn(self):
         """Reset turn-specific states"""
-        self.current_power = 0
-        self.cards_played_this_turn = False
+        self.turn_power = 0
         print(f"{self.name}'s turn ended")
     
-    def add_win_points(self, points):
-        """Add win points to player"""
-        self.wp += points
-        print(f"{self.name} gained {points} win points (Total: {self.wp})")
+    def calculate_total_wp(self):
+        """Calculate total WP from all cards in player's deck (hand + draw + discard)"""
+        total_wp = 0
+        all_cards = self.hand + self.draw_pile + self.discard_pile
+        for card in all_cards:
+            total_wp += card.getWP()
+        return total_wp
+    
+    def load_cards_from_json(self, json_file_path):
+        """Load cards from JSON file and add to draw pile"""
+        try:
+            with open(json_file_path, 'r') as file:
+                cards_data = json.load(file)
+                
+            for card_data in cards_data:
+                card = Card(
+                    card_data['card_index'],
+                    card_data['name'],
+                    card_data['power'],
+                    card_data['cost'],
+                    card_data['WP'],
+                    card_data['ability']
+                )
+                self.draw_pile.append(card)
+            
+            print(f"Loaded {len(cards_data)} cards from {json_file_path}")
+        except FileNotFoundError:
+            print(f"Cards file {json_file_path} not found")
+        except json.JSONDecodeError:
+            print(f"Invalid JSON format in {json_file_path}")
+    
+    def show_hand(self):
+        """Display all cards in hand with indices"""
+        if not self.hand:
+            print("Hand is empty")
+            return
+        
+        print(f"\n=== {self.name}'s Hand ===")
+        for i, card in enumerate(self.hand):
+            print(f"{i}: {card.getName()} (Power: {card.getPower()}, WP: {card.getWP()}, Cost: {card.getCost()})")
+            print(f"   Ability: {card.getAbility()}")
     
     def get_status(self):
         """Get current player status"""
@@ -91,9 +130,8 @@ class Player:
             'hand_size': len(self.hand),
             'draw_pile_size': len(self.draw_pile),
             'discard_pile_size': len(self.discard_pile),
-            'win_points': self.wp,
-            'current_power': self.current_power,
-            'cards_played_this_turn': self.cards_played_this_turn
+            'total_wp': self.calculate_total_wp(),
+            'turn_power': self.turn_power
         }
     
     def __str__(self):
@@ -103,39 +141,11 @@ class Player:
                 f"Hand: {status['hand_size']} | "
                 f"Draw: {status['draw_pile_size']} | "
                 f"Discard: {status['discard_pile_size']} | "
-                f"WP: {status['win_points']} | "
-                f"Power: {status['current_power']}")
+                f"Total WP: {status['total_wp']} | "
+                f"Turn Power: {status['turn_power']}")
 
 
 # Example usage and testing
 if __name__ == "__main__":
-    # Create a test player
-    player = Player("TestPlayer")
-    
-    # Add some mock cards to draw pile for testing
-    mock_cards = ["Card1", "Card2", "Card3", "Card4", "Card5"]
-    player.draw_pile = mock_cards[:]
-    
-    print("=== Player Status ===")
-    print(player)
-    
-    print("\n=== Drawing Hand ===")
-    player.draw_hand()
-    print(player)
-    
-    print("\n=== Playing All Cards ===")
-    player.play_all_cards()
-    print(player)
-    
-    print("\n=== Buying Card ===")
-    mock_market_card = "ExpensiveCard"
-    player.buy_card(mock_market_card, 3)
-    print(player)
-    
-    print("\n=== Adding Win Points ===")
-    player.add_win_points(10)
-    print(player)
-    
-    print("\n=== End Turn ===")
-    player.end_turn()
-    print(player)
+    print("Player class loaded successfully!")
+    print("Run 'python client.py' to play the game interactively.")
