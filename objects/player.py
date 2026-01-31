@@ -44,10 +44,27 @@ class Player:
         print(f"Use this power to buy cards from the market!")
         return True
     
-    def buy_card(self, market_card, cost):
-        """Buy a card from market if player has enough power (placeholder for future)"""
-        print("Market not implemented yet")
-        return False
+    def buy_card(self, market, card_index):
+        """Buy a card from market if player has enough power"""
+        if self.turn_power <= 0:
+            print("No power available to buy cards!")
+            return False
+        
+        # Attempt to buy card from market
+        purchased_card, cost = market.buy_card(card_index, self.turn_power)
+        
+        if purchased_card is None:
+            return False
+        
+        # Deduct cost from turn power
+        self.turn_power -= cost
+        
+        # Add purchased card to discard pile
+        self.discard_pile.append(purchased_card)
+        
+        print(f"Added {purchased_card.getName()} to discard pile")
+        print(f"Remaining power this turn: {self.turn_power}")
+        return True
     
     def draw_card(self):
         """Draw a card from draw pile to hand"""
@@ -103,18 +120,94 @@ class Player:
             else:
                 cards_data = json_data
                 
+            total_cards_loaded = 0
             for card_data in cards_data:
-                card = Card(
+                # Create a card instance
+                card_template = Card(
                     card_data['card_index'],
                     card_data['name'],
                     card_data['power'],
                     card_data['cost'],
                     card_data['WP'],
+                    card_data.get('count', 1),  # Default to 1 if count not specified
                     card_data.get('ability', card_data.get('Ability', ''))  # Handle both 'ability' and 'Ability'
                 )
-                self.draw_pile.append(card)
+                
+                # Add multiple copies based on count
+                count = card_data.get('count', 1)
+                for _ in range(count):
+                    # Create a new card instance for each copy
+                    card_copy = Card(
+                        card_data['card_index'],
+                        card_data['name'],
+                        card_data['power'],
+                        card_data['cost'],
+                        card_data['WP'],
+                        card_data.get('count', 1),
+                        card_data.get('card_type', ''),
+                        card_data.get('isLegendary', False),
+                        card_data.get('isStart', False),
+                        card_data.get('ability', card_data.get('Ability', ''))
+                    )
+                    self.draw_pile.append(card_copy)
+                    total_cards_loaded += 1
             
-            print(f"Loaded {len(cards_data)} cards from {json_file_path}")
+            print(f"Loaded {total_cards_loaded} total cards from {len(cards_data)} card types from {json_file_path}")
+            
+            # Shuffle the initial draw pile for randomized first draw
+            random.shuffle(self.draw_pile)
+            print("Initial draw pile shuffled for randomized starting hands")
+            
+        except FileNotFoundError:
+            print(f"Cards file {json_file_path} not found")
+        except json.JSONDecodeError:
+            print(f"Invalid JSON format in {json_file_path}")
+        except KeyError as e:
+            print(f"Missing required field in card data: {e}")
+    
+    def load_starting_cards_from_json(self, json_file_path):
+        """Load only starting cards (isStart: true) from JSON file and add to draw pile"""
+        try:
+            with open(json_file_path, 'r') as file:
+                json_data = json.load(file)
+                
+            # Handle both JSON structures: direct array or wrapped in "cards" key
+            if "cards" in json_data:
+                cards_data = json_data["cards"]
+            else:
+                cards_data = json_data
+                
+            total_cards_loaded = 0
+            for card_data in cards_data:
+                # Only load cards marked as starting cards
+                if not card_data.get('isStart', False):
+                    continue
+                    
+                # Add multiple copies based on count
+                count = card_data.get('count', 1)
+                for _ in range(count):
+                    # Create a new card instance for each copy
+                    card_copy = Card(
+                        card_data['card_index'],
+                        card_data['name'],
+                        card_data['power'],
+                        card_data['cost'],
+                        card_data['WP'],
+                        card_data.get('count', 1),
+                        card_data.get('card_type', ''),
+                        card_data.get('isLegendary', False),
+                        card_data.get('isStart', False),
+                        card_data.get('ability', card_data.get('Ability', ''))
+                    )
+                    self.draw_pile.append(card_copy)
+                    total_cards_loaded += 1
+            
+            print(f"Loaded {total_cards_loaded} starting cards from {json_file_path}")
+            
+            # Shuffle the initial draw pile for randomized first draw
+            random.shuffle(self.draw_pile)
+            print("Initial draw pile shuffled for randomized starting hands")
+            
         except FileNotFoundError:
             print(f"Cards file {json_file_path} not found")
         except json.JSONDecodeError:

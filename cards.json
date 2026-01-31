@@ -1,8 +1,8 @@
 {
     "cards":[
-        {"card_index": 0, "name": "Znak", "power": 1, "cost": 0, "WP": 0, "count": 12, "card_type": "Zatravka", "isLegendary": false, "isStart": true,  "Ability": " "},
-        {"card_index": 1, "name": "Pshik", "power": 0, "cost": 0, "WP": 0, "count": 6, "card_type": "Zatravka", "isLegendary": false, "isStart": true, "Ability": " "},
-        {"card_index": 2, "name": "ChipsPalka", "power": 1, "cost": 0, "WP": 0, "count": 2, "card_type": "Zatravka", "isLegendary": false, "isStart": true, "Ability": " "},
+        {"card_index": 0, "name": "Znak", "power": 1, "cost": 0, "WP": 0, "count": 6, "card_type": "Zatravka", "isLegendary": false, "isStart": true,  "Ability": " "},
+        {"card_index": 1, "name": "Pshik", "power": 0, "cost": 0, "WP": 0, "count": 3, "card_type": "Zatravka", "isLegendary": false, "isStart": true, "Ability": " "},
+        {"card_index": 2, "name": "ChipsPalka", "power": 1, "cost": 0, "WP": 0, "count": 1, "card_type": "Zatravka", "isLegendary": false, "isStart": true, "Ability": " "},
         {"card_index": 0, "name": "MusorPaket", "power": 2, "cost": 3, "WP": 1, "count": 2, "card_type": "Treasure", "isLegendary": false, "isStart": false, "Ability": " "},
         {"card_index": 1, "name": "Zloshirak", "power": 3, "cost": 5, "WP": 2, "count": 2, "card_type": "Treasure", "isLegendary": false, "isStart": false, "Ability": " "}, 
         {"card_index": 2, "name": "Pivobak", "power": 4, "cost": 6, "WP": 3, "count": 1, "card_type": "Creature", "isLegendary": false, "isStart": false, "Ability": " "},

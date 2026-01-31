@@ -33,6 +33,18 @@ class Card:
     def getWP (self):
         return self.WP
     
+    def getCount(self):
+        return self.count
+    
+    def getCardType(self):
+        return self.card_type
+    
+    def getIsLegendary(self):
+        return self.isLegendary
+    
+    def getIsStart(self):
+        return self.isStart
+    
     def getAbility (self):
         return self.ability
 
