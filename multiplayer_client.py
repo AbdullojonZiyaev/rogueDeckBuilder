@@ -34,14 +34,37 @@ class MultiplayerClient:
     
     def listen_for_messages(self):
         """Listen for messages from the server"""
+        buffer = ""  # Buffer to accumulate partial messages
+        
         while self.connected:
             try:
                 data = self.socket.recv(4096).decode('utf-8')
                 if not data:
                     break
                 
-                message = json.loads(data)
-                self.handle_server_message(message)
+                buffer += data
+                
+                # Process all complete JSON messages in the buffer
+                while buffer:
+                    try:
+                        # Try to decode one JSON message
+                        message, idx = json.JSONDecoder().raw_decode(buffer)
+                        self.handle_server_message(message)
+                        
+                        # Remove processed message from buffer
+                        buffer = buffer[idx:].lstrip()
+                        
+                    except json.JSONDecodeError as e:
+                        # If we can't decode, we need more data
+                        # Check if the error is due to incomplete data vs invalid JSON
+                        if "Expecting" in str(e) or "Unterminated" in str(e):
+                            # Incomplete JSON, wait for more data
+                            break
+                        else:
+                            # Invalid JSON, skip the first character and try again
+                            buffer = buffer[1:]
+                            if not buffer:
+                                break
                 
             except Exception as e:
                 if self.connected:
