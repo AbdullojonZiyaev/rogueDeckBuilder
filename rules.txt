@@ -1,0 +1,9 @@
+Commands:
+  h - Show hand
+  m - Show market
+  s - Show status
+  p <index> - Play card at index
+  b <index> - Buy card at index from market
+  d [size] - Draw hand (default 5 cards)
+  f - Finish turn
+  q - Quit
